@@ -11,9 +11,11 @@ Windows custom nodes for refining a coarse 3D mesh with Direct3D-V3 and a refere
 | [cu128 ZIP](./ComfyUI-Direct3D-V3-Windows-cu128.zip?raw=1) | 3.12 x64 | 2.8.0+cu128 |
 | [cu130 ZIP](./ComfyUI-Direct3D-V3-Windows-cu130.zip?raw=1) | 3.13 x64 | 2.12.1+cu130 |
 
-Both archives target NVIDIA RTX 50-series GPUs (SM 120) and include prebuilt voxelizers. You need a current NVIDIA driver and the listed 64-bit Python version. The worker has its own Python environment, so ComfyUI can keep its existing Python and PyTorch. The prebuilt extensions let setup run without a CUDA Toolkit or Visual Studio.
+Both Windows ZIPs include prebuilt voxelizers for NVIDIA GeForce **RTX 20, 30, 40, and 50 series**. You need a current NVIDIA driver and the listed 64-bit Python version. The worker has its own Python environment, so ComfyUI can keep its existing Python and PyTorch. Setup for these ZIPs runs without a CUDA Toolkit or Visual Studio.
 
-**Build status.** The cu128 configuration is the one used on an RTX 5050 Laptop GPU with 8 GB VRAM. The cu130 build is experimental and awaiting runtime testing. Its extensions were compiled with CUDA Toolkit 13.5 against PyTorch cu130. Use a driver with CUDA 13.5 support for the initial test.
+[Source-only ZIP](./ComfyUI-Direct3D-V3-Source.zip?raw=1) includes the Python and CUDA source and instructions for building either variant locally.
+
+**Build status.** The earlier cu128 configuration ran on an RTX 5050 Laptop GPU with 8 GB VRAM. The rebuilt binaries contain GPU code for all four series and are awaiting runtime testing. The cu130 extensions were compiled with CUDA Toolkit 13.5 against PyTorch cu130. Use a driver with CUDA 13.5 support for the initial cu130 test.
 
 ## Install
 
@@ -30,6 +32,8 @@ For cascade mode, download all three geometry stages by running `setup.cmd --mod
 2. Connect the reference image and its matching foreground mask. Use white for foreground. For an image with transparency, enable `use_alpha`.
 3. Start with `resolution = 1536` and `stage_mode = single_stage` after the default setup. Queue the workflow to export a raw mesh.
 
+Use the default FP16 precision on RTX 20-series GPUs. The 512 and 1024 stages are available for GPUs with less VRAM.
+
 `preserve_scale` keeps the full normalized mesh extent and reports the token count required if it exceeds the cap. `shrink_to_fit` reduces the extent until the mesh fits the cap. Larger accepted token counts can increase runtime and memory use substantially.
 
 `efficient` is the default attention backend. With FP16, you can try `cudnn_fp16` for eligible attention calls. It can change numerical rounding and the resulting surface. Use a fixed seed when comparing exports.
@@ -37,39 +41,3 @@ For cascade mode, download all three geometry stages by running `setup.cmd --mod
 ## Credits
 
 Built on [Direct3D-V3](https://github.com/DreamTechAI/Direct3D-V3) with [Direct3D-V3 geometry checkpoints](https://huggingface.co/wushuang98/Direct3D-V3) and [DINOv3](https://huggingface.co/facebook/dinov3-vith16plus-pretrain-lvd1689m). Each archive includes the adapter and upstream code licenses. Model weights are downloaded separately under the terms on their model pages.
-
-
-## 🚀 SUPPORT MOSTAADTECH
-
-### ❤️ Enjoying this project / workflow?
-
-I'm **MostAadTech**, I create FREE ComfyUI workflows, local AI tools, 3D pipelines, and open-source projects.
-
-If this project or workflow helped you, **please consider following me or supporting my work**. It helps me keep building, testing, and releasing more free tools and workflows.
-
----
-
-## 💜 Support Me on Patreon
-
-👉 **[Support MostAadTech on Patreon](https://www.patreon.com/cw/MostafaAwad/membership)**
-
-Your support helps me spend more time developing **FREE AI tools, ComfyUI workflows, and 3D pipelines**.
-
----
-
-## 🌐 Follow MostAadTech
-
-* ▶️ **[YouTube](https://www.youtube.com/@MostAadTech)** — Tutorials, workflows & AI projects
-* 📸 **[Instagram](https://www.instagram.com/mostaadtech/)** — Projects, updates & behind the scenes
-* 𝕏 **[X / Twitter](https://x.com/MostAadTech)** — Updates, releases & experiments
-* 💻 **[GitHub](https://github.com/Mstafa-awad)** — Open-source projects & code
-
----
-
-### ⭐ One Follow Helps
-
-**Follow • Star • Share • Support**
-
-Every follow, GitHub star, share, and Patreon supporter helps me continue making **FREE tools for the AI community.**
-
-**Thank you for supporting MostAadTech! ❤️**
