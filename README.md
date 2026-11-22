@@ -41,3 +41,39 @@ Use the default FP16 precision on RTX 20-series GPUs. The 512 and 1024 stages ar
 ## Credits
 
 Built on [Direct3D-V3](https://github.com/DreamTechAI/Direct3D-V3) with [Direct3D-V3 geometry checkpoints](https://huggingface.co/wushuang98/Direct3D-V3) and [DINOv3](https://huggingface.co/facebook/dinov3-vith16plus-pretrain-lvd1689m). Each archive includes the adapter and upstream code licenses. Model weights are downloaded separately under the terms on their model pages.
+
+
+## 🚀 SUPPORT MOSTAADTECH
+
+### ❤️ Enjoying this project / workflow?
+
+I'm **MostAadTech**, I create FREE ComfyUI workflows, local AI tools, 3D pipelines, and open-source projects.
+
+If this project or workflow helped you, **please consider following me or supporting my work**. It helps me keep building, testing, and releasing more free tools and workflows.
+
+---
+
+## 💜 Support Me on Patreon
+
+👉 **[Support MostAadTech on Patreon](https://www.patreon.com/cw/MostafaAwad/membership)**
+
+Your support helps me spend more time developing **FREE AI tools, ComfyUI workflows, and 3D pipelines**.
+
+---
+
+## 🌐 Follow MostAadTech
+
+* ▶️ **[YouTube](https://www.youtube.com/@MostAadTech)** — Tutorials, workflows & AI projects
+* 📸 **[Instagram](https://www.instagram.com/mostaadtech/)** — Projects, updates & behind the scenes
+* 𝕏 **[X / Twitter](https://x.com/MostAadTech)** — Updates, releases & experiments
+* 💻 **[GitHub](https://github.com/Mstafa-awad)** — Open-source projects & code
+
+---
+
+### ⭐ One Follow Helps
+
+**Follow • Star • Share • Support**
+
+Every follow, GitHub star, share, and Patreon supporter helps me continue making **FREE tools for the AI community.**
+
+**Thank you for supporting MostAadTech! ❤️**
