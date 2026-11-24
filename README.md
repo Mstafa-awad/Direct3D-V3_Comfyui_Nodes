@@ -34,16 +34,53 @@ SuperFast builds also include:
 * **Stays under 8 GB of VRAM** (about 7.3 GB peak at 152k patches). Weights stream from system RAM. Task Manager may list that RAM as "Shared GPU memory", but it is ordinary system memory that the GPU copies from.
 * **Safe fallback.** GPUs older than the RTX 30 series, a missing Triton install, or BF16 dtype run the original path automatically.
 
+## 🧭 New: Multiview — better backs and sides
+
+Direct3D-V3 normally sees one front image, so it has to guess the back and the sides. The **SuperFast Multiview** build adds a second refine node, **Direct3D-V3 Clean | Refine Multiview (Made by @MostAadTech)**. You can connect optional **back, left, right, top and bottom** images of the same object, each with its own mask and weight. The single-view nodes are unchanged.
+
+How it works (training-free, by @MostAadTech): for each extra view, the patch grid is turned in exact 90° steps so that view faces the model's camera. The model denoises there with that view's image, and the prediction is turned back. At every sampling step each surface patch follows the view that sees it most head-on (`facing` mode, using the coarse mesh's normals), with feathered seams between views.
+
+| Setting | Options |
+| --- | --- |
+| `multiview_mode` | `facing` (default, best in tests), `visible`, `blend`, `average` |
+| `multiview_speed` | `quality` (each view runs its own guided passes) or `fast` (views share the front's unconditional pass) |
+| `front_weight`, `<view>_weight` | Relative trust in each image |
+| `boundary_feather` | Seam softening in patches (default 1) |
+
+**View convention.** Render or draw the extra views around the model's vertical axis, at the same scale and framing as the front image:
+
+| Input | Camera | Image orientation |
+| --- | --- | --- |
+| `back_image` | behind the model | upright |
+| `left_image` | at the model's left side (the right edge of the front image) | upright |
+| `right_image` | at the model's right side | upright |
+| `top_image` | above | front of the model at the image's bottom edge |
+| `bottom_image` | below | front of the model at the image's top edge |
+
+**Measured** (RTX 5050 Laptop 8 GB):
+
+| Run | Sampling | VRAM peak (reserved) |
+| --- | --- | --- |
+| 1536, 152k patches, front only (`accel_mode=fast`) | 459 s | 7.3 GB |
+| + back view, `multiview_speed=fast` | 772 s (1.68x) | 7.6 GB |
+| + back view, `multiview_speed=quality` | 983 s (2.14x) | 7.6 GB |
+
+In a ground-truth test (a detailed dragon, its decimated coarse mesh, and front/back/left/right renders), 4 views reduced the shape error on the provided sides by about 8–9% on average versus front only. The front was not degraded. With only a front image connected through an extra view at weight 0, the output is byte-identical to the single-view node.
+
+Tips: each connected view adds roughly one more sampling pass, or about half a pass with `multiview_speed=fast`. Views that own under 0.5% of the patches are skipped automatically. Misaligned or inconsistent view images (for example AI-generated backs with a different pose) can hurt more than they help.
+
 ## Download
 
 | Build | Worker Python | PyTorch | Acceleration |
 | --- | --- | --- | --- |
+| 🧭 [**cu128 SuperFast + Multiview ZIP**](./ComfyUI-Direct3D-V3-Windows-cu128_int8_superfast_mv.zip?raw=1) | 3.12 x64 | 2.8.0+cu128 | ✅ `accel_mode` + Multiview node (tested) |
+| [**cu130 SuperFast + Multiview ZIP**](./ComfyUI-Direct3D-V3-Windows-cu130_int8_superfast_mv.zip?raw=1) | 3.13 x64 | 2.12.1+cu130 | ✅ `accel_mode` + Multiview node (awaiting runtime test) |
 | ⭐ [**cu128 SuperFast ZIP**](./ComfyUI-Direct3D-V3-Windows-cu128_int8_superfast.zip?raw=1) | 3.12 x64 | 2.8.0+cu128 | ✅ `accel_mode` (tested) |
 | [**cu130 SuperFast ZIP**](./ComfyUI-Direct3D-V3-Windows-cu130_int8_superfast.zip?raw=1) | 3.13 x64 | 2.12.1+cu130 | ✅ `accel_mode` (awaiting runtime test) |
 | [cu128 ZIP (classic)](./ComfyUI-Direct3D-V3-Windows-cu128.zip?raw=1) | 3.12 x64 | 2.8.0+cu128 | — |
 | [cu130 ZIP (classic)](./ComfyUI-Direct3D-V3-Windows-cu130.zip?raw=1) | 3.13 x64 | 2.12.1+cu130 | — |
 
-**Which one?** Pick **cu128 SuperFast** for most setups. It is the build tested end to end. The classic builds are the earlier releases without `accel_mode`.
+**Which one?** Pick **cu128 SuperFast** for most setups. It is the build tested end to end. Pick **cu128 SuperFast + Multiview** if you want the multiview node; it contains everything from SuperFast plus multiview and was tested from the ZIP itself. The classic builds are the earlier releases without `accel_mode`.
 
 Every ZIP includes prebuilt voxelizers for NVIDIA GeForce **RTX 20, 30, 40 and 50 series**. You need a current NVIDIA driver and the listed 64-bit Python version. The worker uses its own Python environment, so ComfyUI keeps its existing Python and PyTorch. Setup needs no CUDA Toolkit or Visual Studio.
 
@@ -53,7 +90,7 @@ Every ZIP includes prebuilt voxelizers for NVIDIA GeForce **RTX 20, 30, 40 and 5
 | RTX 30 / 40 series | ✅ | ✅ supported, not yet benchmarked |
 | RTX 20 series | ✅ | falls back to `off` automatically |
 
-**Build status.** The cu128 SuperFast build was validated on an RTX 5050 Laptop GPU with 8 GB VRAM. That covered the 512, 1024 and 1536 single stages, the full cascade, and a second mesh. The cu130 builds share the same code but have not had a runtime test yet. They were compiled with CUDA Toolkit 13.5 against PyTorch cu130, so use a driver with CUDA 13.5 support.
+**Build status.** The cu128 SuperFast build was validated on an RTX 5050 Laptop GPU with 8 GB VRAM. That covered the 512, 1024 and 1536 single stages, the full cascade, and a second mesh. The multiview code was validated on the same GPU with the cu128 worker: exact-turn tests, byte-identical regression, a ground-truth quality test, cascade, and 152k patches. The cu130 builds share the same code but have not had a runtime test yet. They were compiled with CUDA Toolkit 13.5 against PyTorch cu130, so use a driver with CUDA 13.5 support.
 
 ## Install
 
@@ -87,7 +124,7 @@ For cascade mode, download all three geometry stages with `setup.cmd --models-on
 
 ## Credits
 
-ComfyUI adapter, low-VRAM pipeline and SuperFast acceleration by **[@MostAadTech](https://github.com/Mstafa-awad)**.
+ComfyUI adapter, low-VRAM pipeline, SuperFast acceleration and Multiview by **[@MostAadTech](https://github.com/Mstafa-awad)**.
 
 Built on [Direct3D-V3](https://github.com/DreamTechAI/Direct3D-V3), the [Direct3D-V3 geometry checkpoints](https://huggingface.co/wushuang98/Direct3D-V3) and [DINOv3](https://huggingface.co/facebook/dinov3-vith16plus-pretrain-lvd1689m). Each archive includes the adapter and upstream code licenses. Model weights download separately under the terms on their model pages.
 
